@@ -8,7 +8,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const TransactionModel = require('../models/TransactionModel');
 const { networkInterfaces } = require('os');
 
-function extractCleanTransactionFrom(mongodbTransaction) {
+function extractCleanTransactionFrom(mongoDbTransaction) {
   const {
     _id,
     description,

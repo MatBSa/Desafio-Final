@@ -4,7 +4,15 @@ const EARNING_COLOR = '##27ae60';
 const EXPENSE_COLOR = '#c0392b';
 
 
-export default function ListScreen({ transactions, periods, onFilterChange, onDeleteTransaction, onPeriodChange, filteredText }) {
+export default function ListScreen({
+  transactions,
+  periods,
+  currentPeriod,
+  onEditTransaction,
+  onFilterChange,
+  onDeleteTransaction,
+  onPeriodChange,
+  filteredText }) {
   const { transactionStyle, buttonsStyle } = styles;
 
   return (
@@ -31,7 +39,11 @@ export default function ListScreen({ transactions, periods, onFilterChange, onDe
           >
 
             <span style={buttonsStyle}>
-              <button className='waves-effect waves-light btn'>Editar</button>
+              <button
+                className='waves-effect waves-light btn'
+                onClick={onEditTransaction}
+                id={transaction._id}
+              >Editar</button>
 
               <button
                 className='waves-effect waves-light btn red darken=4'

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from './api/apiService.js';
 import ListScreen from './componentes/ListScreen.js';
+import MaintenanceScreen from './componentes/MaintenanceScreen.js';
 
 const PERIODS = [
   '2019-01',
@@ -52,6 +53,7 @@ export default function App() {
   const [currentPeriod, serCurrentPeriod] = useState(PERIODS[0]);
   const [currentScreen, setCurrentScreen] = useState(LIST_SCREEN);
   const [filteredText, setFilteredText] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -71,6 +73,12 @@ export default function App() {
     setFilteredTransactions(newFilteredTransactions);
   }, [transactions, filteredText]);
 
+  useEffect(() => {
+    const newScreen = selectedTransaction !== null ? MAINTENANCE_SCREEN : LIST_SCREEN;
+
+    setCurrentScreen(newScreen);
+  }, [selectedTransaction])
+
   const handlePeriodChange = (event) => {
     const newPeriod = event.target.value;
     serCurrentPeriod(newPeriod);
@@ -84,6 +92,16 @@ export default function App() {
       return transaction._id !== id;
     });
     setTransactions(newTransactions);
+  };
+
+  const handleEditTransaction = async (event) => {
+    const id = event.target.id;
+
+    const newSelectedTransaction = filteredTransactions.find(transaction => {
+      return transaction._id;
+    })
+
+    setSelectedTransaction(newSelectedTransaction);
   };
 
   const handleFilterChange = (event) => {
@@ -101,13 +119,17 @@ export default function App() {
         <ListScreen
           transactions={filteredTransactions}
           periods={PERIODS}
+          currentPeriod={currentPeriod}
           filteredText={filteredText}
+          onEditTransaction={handleEditTransaction}
           onFilterChange={handleFilterChange}
           onPeriodChange={handlePeriodChange}
           onDeleteTransaction={handleDeleteTransaction}
         />
       ) : (
-          <p>Tela de manutenção</p>
+          <MaintenanceScreen
+            transaction={selectedTransaction}
+          />
         )
 
     }

@@ -1,11 +1,15 @@
 const express = require('express');
-const service = require('../services/transactionService.js');
+const service = require('../services/TransactionService.js');
 const transactionRouter = express.Router();
 
 transactionRouter.post('/', async (request, response) => {
   const transaction = request.body;
 
   try {
+    if (JSON.stringify(transaction) === '{}') {
+      throw new Error('Conteudo inexistente');
+    }
+
     const newTransaction = await service.postTransaction(transaction);
 
     response.send(newTransaction);
@@ -27,7 +31,13 @@ transactionRouter.get('/', async (request, response) => {
     }
 
     const { period } = query;
-    dateHelpers.validatePeriod(period);
+
+    if (period.length !== 7) {
+      throw new Error(
+        `Periodo invalido. Use o formato yyyy-mm`
+      );
+    }
+
     const filteredTransactions = await service.getTransactionsFrom(period);
 
     response.send({
@@ -40,15 +50,24 @@ transactionRouter.get('/', async (request, response) => {
   }
 });
 
+transactionRouter.delete("/", async (req, res) => {
+  try {
+    throw new Error('ID inexistente.');
+  } catch (error) {
+    console.log(message);
+    res.status(400).send({ error: message });
+  }
+});
+
 transactionRouter.delete("/:id", async (req, res) => {
   const _id = req.params.id;
   try {
-    const data = await service.deleteTransaction({ _id: id });
+    const data = await service.deleteTransaction(_id);
 
-    if (!data) {
-      res.status(404).send('Nao encontrado nenhuma transacao para excluir');
-    } else {
+    if (data) {
       res.send('Transacao excluida com sucesso');
+    } else {
+      res.status(404).send('Nao encontrado nenhuma transacao para excluir');
     }
   } catch (error) {
     res
@@ -58,6 +77,15 @@ transactionRouter.delete("/:id", async (req, res) => {
 });
 
 transactionRouter.put("/", async (req, res) => {
+  try {
+    throw new Error('ID inexistente.');
+  } catch (error) {
+    console.log(message);
+    res.status(400).send({ error: message });
+  }
+});
+
+transactionRouter.put("/:id", async (req, res) => {
   if (!req.body) {
     return res.status(400).send({
       message: 'Dados para atualizacao vazio',
@@ -68,6 +96,10 @@ transactionRouter.put("/", async (req, res) => {
   const transaction = request.body;
 
   try {
+    if (JSON.stringify(transaction) === '{}') {
+      throw new Error('Conteudo inexistente');
+    }
+
     const data = await service.updateTransaction(_id, transaction);
 
     if (!data) {

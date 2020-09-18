@@ -54,10 +54,11 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState(LIST_SCREEN);
   const [filteredText, setFilteredText] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [newTransaction, setNewTransaction] = useState(false);
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const { data } = await api.getAll(cur);
+      const { data } = await api.getAll(currentPeriod);
       setTransactions(data.transactions);
     };
     fetchTransactions();
@@ -74,10 +75,10 @@ export default function App() {
   }, [transactions, filteredText]);
 
   useEffect(() => {
-    const newScreen = selectedTransaction !== null ? MAINTENANCE_SCREEN : LIST_SCREEN;
+    const newScreen = (selectedTransaction !== null || newTransaction) ? MAINTENANCE_SCREEN : LIST_SCREEN;
 
     setCurrentScreen(newScreen);
-  }, [selectedTransaction])
+  }, [selectedTransaction, newTransaction])
 
   const handlePeriodChange = (event) => {
     const newPeriod = event.target.value;
@@ -104,12 +105,60 @@ export default function App() {
     setSelectedTransaction(newSelectedTransaction);
   };
 
+  const handleNewTransaction = async () => {
+    setNewTransaction(true);
+  };
+
   const handleFilterChange = (event) => {
     const text = event.target.value.trim();
     setFilteredText(text.toLowerCase());
-  }
+  };
 
+  const handleCancelMaintenance = () => {
+    setNewTransaction(false);
+    setSelectedTransaction(null);
+  };
 
+  const handleSaveMaintenance = async (newTransaction) => {
+    const { _id } = newTransaction;
+
+    if (!_id) {
+
+      const insertedTransaction = {
+        ...newTransaction,
+        year: Number(newTransaction.yearMonthDay.substring(0, 4)),
+        month: Number(newTransaction.yearMonthDay.substring(5, 7)),
+        day: Number(newTransaction.yearMonthDay.substring(8, 10)),
+      }
+      const { data } = await api.post(insertedTransaction);
+
+      const newTransactions = [...transactions, data.transaction];
+      newTransactions.sort((a, b) => a.yearMonthDay.localeCompare(b.yearMonthDay));
+
+      setTransactions(newTransactions);
+      setNewTransaction(false);
+
+    } else {
+
+      const editedTransaction = {
+        ...newTransaction,
+        year: Number(newTransaction.yearMonthDay.substring(0, 4)),
+        month: Number(newTransaction.yearMonthDay.substring(5, 7)),
+        day: Number(newTransaction.yearMonthDay.substring(8, 10)),
+      }
+      await api.update(_id, editedTransaction);
+
+      const newTransactions = [...transactions];
+      const index = newTransactions.findIndex((transaction) => {
+        return transaction._id === editedTransaction._id;
+      });
+
+      newTransactions[index] = editedTransaction;
+
+      setTransactions(newTransactions);
+      setSelectedTransaction(null);
+    }
+  };
 
   return (<div className='container'>
     <h1 className='center' >Desafio Final do Bootcamp Full Stack</h1>;
@@ -125,10 +174,13 @@ export default function App() {
           onFilterChange={handleFilterChange}
           onPeriodChange={handlePeriodChange}
           onDeleteTransaction={handleDeleteTransaction}
+          onNewTransaction={handleNewTransaction}
         />
       ) : (
           <MaintenanceScreen
             transaction={selectedTransaction}
+            onCancel={handleCancelMaintenance}
+            onSave={handleSaveMaintenance}
           />
         )
 

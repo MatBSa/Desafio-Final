@@ -6,9 +6,12 @@ const EDITING = 1;
 function today() {
   const date = new Date();
   const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStar(2, '0');
-  const day = date.getDate().toString().padStar(2, '0');
-}
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+
+  const today = `${year}-${month}-${day}`;
+  return today;
+};
 
 export default function MaintenanceScreen({ transaction, onCancel, onSave }) {
   const [description, setDescription] = useState('');
